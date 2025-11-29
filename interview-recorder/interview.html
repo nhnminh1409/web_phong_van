@@ -31,7 +31,6 @@
       margin-bottom: 30px;
       box-shadow: 0 10px 30px rgba(102,126,234,0.4);
     }
-    #questionText { font-size: 1.5rem; font-weight: 500; margin-bottom: 10px; }
     #videoPreview {
       width: 100%; height: 420px; object-fit: cover; border-radius: 18px;
       background: #000; box-shadow: 0 15px 40px rgba(0,0,0,0.25);
@@ -43,41 +42,119 @@
     }
     .btn-rec:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .status { text-align: center; margin: 25px 0; font-size: 1.15rem; color: #444; font-weight: 500; }
-    #uploadStatus { text-align: center; min-height: 50px; font-size: 1.1rem; font-weight: bold; }
+    #uploadStatus { display:none; }
+
+    /* Màn hình cảm ơn */
+    .thankyou {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .thankyou h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #4facfe;
+      margin-bottom: 20px;
+    }
+    .thankyou p {
+      font-size: 1.2rem;
+      color: #555;
+    }
   </style>
 </head>
 <body>
+  <div id="interviewSection" class="interview-card">
+    <div class="progress mb-4">
+      <div id="progressBar" class="progress-bar" style="width:20%">1/5</div>
+    </div>
 
-<div class="interview-card">
-  <div class="progress">
-    <div id="progressBar" class="progress-bar" style="width:20%">1/5</div>
+    <div class="question-box">
+      <div id="questionText">Câu hỏi sẽ hiển thị ở đây</div>
+      <div>Question <span id="currentQ">1</span> of <span id="totalQ">5</span></div>
+    </div>
+
+    <div class="text-center mb-4">
+      <video id="videoPreview" autoplay muted playsinline></video>
+      <p id="status" class="status">Recording will start automatically</p>
+    </div>
+
+    <div class="text-center mb-4">
+      <div id="timerDisplay" class="timer-circle">
+        <span class="timer-text">--:--</span>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <button id="stopBtn" class="btn btn-warning btn-rec d-none">Stop Recording</button>
+      <button id="nextBtn" class="btn btn-success btn-rec d-none">Next →</button>
+      <button id="retryBtn" class="btn btn-outline-secondary mt-3 d-none">Retry Upload</button>
+    </div>
+
+    <div id="uploadStatus"></div>
   </div>
 
-  <div class="question-box">
-    <div id="questionText"></div>
-    <div>Question <span id="currentQ">1</span> of <span id="totalQ">5</span></div>
+  <!-- Màn hình cảm ơn (ẩn ban đầu) -->
+  <div id="thankyouSection" class="thankyou d-none">
+    <h1>Cảm ơn bạn đã tham gia phỏng vấn!</h1>
+    <p>Chúng tôi sẽ liên hệ lại với bạn sau khi xem xét câu trả lời.</p>
   </div>
 
-  <div class="text-center mb-4">
-    <video id="videoPreview" autoplay muted playsinline></video>
-    <p id="status" class="status">Bấm <strong>Start Recording</strong> khi bạn đã sẵn sàng</p>
-  </div>
+  <script src="js/recorder-v3.js"></script>
 
-  <div class="text-center">
-    <button id="startBtn" class="btn btn-danger btn-rec">Start Recording</button>
-    <button id="stopBtn" class="btn btn-warning btn-rec d-none">Stop Recording</button>
-    
-    <!-- CHỈ 1 NÚT DUY NHẤT – tự đổi thành "Finish Interview" ở câu cuối -->
-    <button id="actionBtn" class="btn btn-success btn-rec d-none">Next</button>
-    
-    <br>
-    <button id="retryBtn" class="btn btn-outline-secondary mt-3 d-none">Retry Upload</button>
-  </div>
+  <script>
+    const stopBtn = document.getElementById('stopBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const retryBtn = document.getElementById('retryBtn');
+    const statusText = document.getElementById('status');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const currentQ = document.getElementById('currentQ');
+    const totalQ = document.getElementById('totalQ');
+    const interviewSection = document.getElementById('interviewSection');
+    const thankyouSection = document.getElementById('thankyouSection');
 
-  <div id="uploadStatus"></div>
-</div>
+    function updateNextButton() {
+      nextBtn.textContent = (parseInt(currentQ.textContent) === parseInt(totalQ.textContent)) 
+                            ? "Finish" 
+                            : "Next →";
+    }
 
-<script src="js/recorder-v3.js"></script>
+    window.addEventListener('load', () => {
+      statusText.textContent = "Recording...";
+      if (typeof startRecording === "function") startRecording();
+      stopBtn.classList.remove('d-none');
+      uploadStatus.textContent = "";
+      updateNextButton();
+    });
+
+    stopBtn.addEventListener('click', () => {
+      stopBtn.classList.add('d-none');
+      nextBtn.classList.remove('d-none');
+      statusText.textContent = "Recording stopped. Ready for next question.";
+      if (typeof stopRecording === "function") stopRecording();
+      uploadStatus.textContent = "";
+      updateNextButton();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (parseInt(currentQ.textContent) === parseInt(totalQ.textContent)) {
+        // Hiện màn hình cảm ơn ngay tại chỗ
+        interviewSection.classList.add('d-none');
+        thankyouSection.classList.remove('d-none');
+        return;
+      }
+      nextBtn.classList.add('d-none');
+      statusText.textContent = "Preparing next question...";
+      if (typeof nextQuestion === "function") nextQuestion();
+      setTimeout(updateNextButton, 100);
+    });
+
+    retryBtn.addEventListener('click', () => {
+      uploadStatus.textContent = "Retrying upload...";
+      retryBtn.classList.add('d-none');
+      if (typeof retryUpload === "function") retryUpload();
+    });
+
+    const observer = new MutationObserver(() => uploadStatus.textContent = "");
+    observer.observe(uploadStatus, { childList: true, characterData: true, subtree: true });
+  </script>
 </body>
 </html>
-

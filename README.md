@@ -23,6 +23,7 @@ Dự án này nhằm mục đích giúp cho việc phỏng vấn dễ dàng hơn
 ```bash
    git clone https://github.com/nhnminh1409/web_phong_van.git
    cd web_phong_van
+
    pip install pandas
 ```
 ### Chạy dự án

@@ -18,15 +18,15 @@ Dự án này nhằm mục đích giúp cho việc phỏng vấn dễ dàng hơn
 - Back-end: PHP / FFPRESET, whisper AI
 - Excel file, đưa danh sách ứng viên. Python, tạo token.
   
-## Cài đặt & Chạy dự án
-### Cài đặt
+## Cài đặt & Chạy dự án.
+### Cài đặt.  
 ```bash
    git clone https://github.com/nhnminh1409/web_phong_van.git
    cd web_phong_van
 
    pip install pandas
 ```
-### Chạy dự án
+### Chạy dự án.  
 1. Tạo tokens
 ```bash
    python generate_tokens.py hoặc py generate_tokens.py

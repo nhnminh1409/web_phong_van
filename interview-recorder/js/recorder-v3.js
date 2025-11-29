@@ -192,6 +192,11 @@ async function startRecording() {
     });
     video.srcObject = stream;
 
+    // Lật video ngang
+      video.style.transform = 'scaleX(-1)';
+      video.style.transformOrigin = 'center center';
+
+
     const chunks = [];
     recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
 
@@ -203,8 +208,13 @@ async function startRecording() {
       const filename = `${safeName}_Q${String(currentIdx + 1).padStart(2, '0')}_${now}.webm`;
       recordedBlob = new Blob(chunks, { type: 'video/webm' });
       
+    
       stream.getTracks().forEach(t => t.stop());
       video.srcObject = null;
+      
+      video.src = URL.createObjectURL(recordedBlob);
+      video.style.transform = 'scaleX(-1)';  // quan trọng nhất
+      video.style.transformOrigin = 'center center';
 
       if (recordedBlob.size > MAX_SIZE) {
         status.innerHTML = '<small class="text-danger">❌ Video quá lớn (>200MB)! Hãy ghi ngắn lại.</small>';

@@ -30,7 +30,7 @@ $filename = "Q".($qIndex + 1).".webm";
 $target = $uploadDir.'/'.$filename;
 
 if (move_uploaded_file($_FILES['video']['tmp_name'], $target)) {
-    // Cập nhật meta.json
+    // Phần code cũ của mày (giữ nguyên)
     $metaFile = $uploadDir.'/meta.json';
     $meta = file_exists($metaFile) ? json_decode(file_get_contents($metaFile), true) : [];
     $meta['questions'][$qIndex] = [

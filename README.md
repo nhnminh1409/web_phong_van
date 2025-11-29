@@ -31,8 +31,8 @@ Dự án này nhằm mục đích giúp cho việc phỏng vấn dễ dàng hơn
 ```bash
    python generate_tokens.py hoặc py generate_tokens.py
 ```
-hoặc nhấn đúp vào file RUN.bat 
-2. Vào file tokens.json kiểm tra tokens
+hoặc nhấn đúp vào file RUN.bat.  
+2. Vào file tokens.json kiểm tra tokens.  
 3. 
 
   

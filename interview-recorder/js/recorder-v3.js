@@ -1,4 +1,4 @@
-// 🔥 RECORDER V7.0 - HỢP NHẤT TIMER TỰ ĐỘNG + TÍNH NĂNG GỐC
+//🔥 RECORDER V7.0 - HỢP NHẤT TIMER TỰ ĐỘNG + TÍNH NĂNG GỐC
 let recorder, stream, recordedBlob = null;
 const video = document.getElementById('videoPreview');
 const stopBtn = document.getElementById('stopBtn');

@@ -46,6 +46,7 @@
   </div>
 
 <script>
+  const ADMIN_TOKEN = "ADMIN2025";
   const tokenForm = document.getElementById('tokenForm');
   const msgToken = document.getElementById('msgToken');
   const stepToken = document.getElementById('stepToken');
@@ -58,7 +59,12 @@
     if (!token) return;
 
     msgToken.innerHTML = `<div class="alert alert-info">Verifying token…</div>`;
-
+    if (token === ADMIN_TOKEN) {
+      sessionStorage.setItem('isAdmin', 'true');
+      sessionStorage.setItem('adminToken', token);
+      window.location.href = 'admin.html';
+      return;
+    }
     try {
       const res = await fetch('api/verify-token.php', {
         method: 'POST',

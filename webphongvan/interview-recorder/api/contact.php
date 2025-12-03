@@ -23,7 +23,6 @@ $fields = [
     $data['birthyear'] ?? '',
     $data['email'] ?? '',
     $data['role'] ?? '',
-    $data['course'] ?? '',
     $data['message'] ?? ''
 ];
 
@@ -38,8 +37,7 @@ $line = date('Y-m-d H:i:s') . " | "
       . str_pad($fields[2], 10, " ") . " | "  // Năm sinh
       . str_pad($fields[3], 25, " ") . " | "  // Email
       . str_pad($fields[4], 12, " ") . " | "  // Bạn là
-      . str_pad($fields[5], 30, " ") . " | "  // Khóa học
-      . $fields[6]                     // Nội dung (không pad để hiện đầy đủ)
+      . $fields[5]                     // Nội dung (không pad để hiện đầy đủ)
       . PHP_EOL . PHP_EOL;             // 2 lần xuống dòng cho dễ nhìn
 
 // Ghi vào file (chỉ ghi $line – không thêm thời gian lần nữa!)

@@ -10,6 +10,8 @@
     .card { box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 15px; }
     .session-card { transition: all 0.3s; cursor: pointer; }
     .session-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+    .table th { font-size: 0.9rem; }
+    .table td small { line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -19,68 +21,88 @@
         <h2>ADMIN PANEL – Quản lý tất cả buổi phỏng vấn</h2>
       </div>
       <div class="card-body">
-        
-        <!-- ================== THÊM MỚI: Tin nhắn từ form liên hệ ================== -->
-      <div class="card mb-4 border-success">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">Tin nhắn mới từ khách</h4>
-          <button onclick="location.reload()" class="btn btn-sm btn-light">Làm mới</button>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive" style="max-height: 520px;">
-            <table class="table table-striped table-hover mb-0">
-              <thead class="table-success sticky-top">
-                <tr>
-                  <th>Thời gian</th>
-                  <th>Họ tên</th>
-                  <th>SĐT</th>
-                  <th>Năm sinh</th>
-                  <th>Email</th>
-                  <th>Bạn là</th>
-                  <th>Khóa học</th>
-                  <th>Nội dung</th>
-                </tr>
-              </thead>
-              <tbody id="messagesTable"></tbody>
-            </table>
+
+        <!-- TIN NHẮN TỪ KHÁCH (CHỈ 7 CỘT) -->
+        <div class="card mb-4 border-success">
+          <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Tin nhắn mới từ khách</h4>
+            <button onclick="loadMessages()" class="btn btn-sm btn-light">Làm mới ngay</button>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 520px;">
+              <table class="table table-striped table-hover mb-0 align-middle">
+                <thead class="table-success sticky-top">
+                  <tr>
+                    <th width="14%">Thời gian</th>
+                    <th width="16%">Họ tên</th>
+                    <th width="12%">SĐT</th>
+                    <th width="10%">Năm sinh</th>
+                    <th width="18%">Email</th>
+                    <th width="12%">Bạn là</th>
+                    <th>Nội dung</th>
+                  </tr>
+                </thead>
+                <tbody id="messagesTable">
+                  <tr><td colspan="7" class="text-center py-4 text-muted">Đang tải tin nhắn...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
 
-      <script>
-      async function loadMessages() {
-        const res = await fetch('contact-messages.txt?t=' + Date.now());
-        const text = await res.text();
-        const lines = text.trim().split('\n').filter(l => l.includes('|'));
-        
-        const tbody = document.getElementById('messagesTable');
-        tbody.innerHTML = lines.slice(1).reverse().map(line => { // bỏ dòng đầu (header), đảo ngược để mới nhất lên trên
-          const cols = line.split(' | ');
-          return `<tr>
-            <td><small>${cols[0]}</small></td>
-            <td><strong>${cols[1]}</strong></td>
-            <td>${cols[2]}</td>
-            <td>${cols[3]}</td>
-            <td>${cols[4]}</td>
-            <td>${cols[5]}</td>
-            <td>${cols[6]}</td>
-            <td><small>${cols[7]}</small></td>
-          </tr>`;
-        }).join('');
-      }
-      loadMessages();
-      setInterval(loadMessages, 5000);
-      </script>
-  <!-- ================== HẾT PHẦN THÊM MỚI ================== -->
+        <script>
+        async function loadMessages() {
+          try {
+            const res = await fetch('contact-messages.txt?t=' + Date.now());
+            const text = await res.text();
+            const lines = text.trim().split('\n').filter(line => line.includes('|') && line.trim() !== '');
+
+            const tbody = document.getElementById('messagesTable');
+
+            if (lines.length <= 1) {
+              tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">Chưa có tin nhắn nào</td></tr>';
+              return;
+            }
+
+            // Bỏ header, đảo ngược để mới nhất lên trên
+            const dataLines = lines.slice(1).reverse();
+
+            tbody.innerHTML = dataLines.map(line => {
+              const cols = line.split(' | ').map(c => c.trim());
+
+              // Bảo vệ nếu dữ liệu bị lỗi
+              if (cols.length < 7) return '';
+
+              return `<tr>
+                <td><small class="text-muted">${cols[0]}</small></td>
+                <td><strong>${cols[1]}</strong></td>
+                <td>${cols[2]}</td>
+                <td>${cols[3]}</td>
+                <td><small>${cols[4] || '-'}</small></td>
+                <td>${cols[5] || 'Không chọn'}</td>
+                <td><small style="word-break:break-word;">${cols[6].replace(/\\n/g, '<br>')}</small></td>
+              </tr>`;
+            }).join('');
+          } catch (err) {
+            document.getElementById('messagesTable').innerHTML = 
+              '<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+          }
+        }
+
+        // Load lần đầu + tự động cập nhật mỗi 5 giây
+        loadMessages();
+        setInterval(loadMessages, 5000);
+        </script>
+        <!-- HẾT PHẦN TIN NHẮN -->
 
         <div id="sessionList" class="row">
-          <!-- Danh sách session sẽ load tự động -->
+          <!-- Danh sách buổi phỏng vấn sẽ hiện ở đây -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal xem chi tiết -->
+  <!-- Modal chi tiết buổi phỏng vấn -->
   <div class="modal fade" id="detailModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
@@ -88,22 +110,20 @@
           <h5 class="modal-title">Chi tiết buổi phỏng vấn</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="modal-body" id="modalBody">
-          <!-- Video + transcript sẽ hiện ở đây -->
-        </div>
+        <div class="modal-body" id="modalBody"></div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // BẢO VỆ TRANG ADMIN (không cho ứng viên vào)
+    // Bảo vệ trang admin
     if (sessionStorage.getItem('isAdmin') !== 'true') {
       alert('Bạn không có quyền truy cập trang này!');
       window.location.href = 'index.html';
     }
 
-    // Load danh sách session từ thư mục uploads
+    // Load danh sách buổi phỏng vấn
     async function loadSessions() {
       const response = await fetch('api/admin-api.php?action=list');
       const data = await response.json();
@@ -128,7 +148,6 @@
       `).join('');
     }
 
-    // Xem chi tiết session
     async function viewSession(folder) {
       const res = await fetch(`api/admin-api.php?action=view&folder=${folder}`);
       const data = await res.json();
@@ -162,7 +181,6 @@
       new bootstrap.Modal(document.getElementById('detailModal')).show();
     }
 
-    // Load ngay khi mở trang
     loadSessions();
   </script>
 </body>

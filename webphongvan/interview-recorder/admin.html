@@ -19,6 +19,60 @@
         <h2>ADMIN PANEL – Quản lý tất cả buổi phỏng vấn</h2>
       </div>
       <div class="card-body">
+        
+        <!-- ================== THÊM MỚI: Tin nhắn từ form liên hệ ================== -->
+      <div class="card mb-4 border-success">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Tin nhắn mới từ khách</h4>
+          <button onclick="location.reload()" class="btn btn-sm btn-light">Làm mới</button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive" style="max-height: 520px;">
+            <table class="table table-striped table-hover mb-0">
+              <thead class="table-success sticky-top">
+                <tr>
+                  <th>Thời gian</th>
+                  <th>Họ tên</th>
+                  <th>SĐT</th>
+                  <th>Năm sinh</th>
+                  <th>Email</th>
+                  <th>Bạn là</th>
+                  <th>Khóa học</th>
+                  <th>Nội dung</th>
+                </tr>
+              </thead>
+              <tbody id="messagesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <script>
+      async function loadMessages() {
+        const res = await fetch('contact-messages.txt?t=' + Date.now());
+        const text = await res.text();
+        const lines = text.trim().split('\n').filter(l => l.includes('|'));
+        
+        const tbody = document.getElementById('messagesTable');
+        tbody.innerHTML = lines.slice(1).reverse().map(line => { // bỏ dòng đầu (header), đảo ngược để mới nhất lên trên
+          const cols = line.split(' | ');
+          return `<tr>
+            <td><small>${cols[0]}</small></td>
+            <td><strong>${cols[1]}</strong></td>
+            <td>${cols[2]}</td>
+            <td>${cols[3]}</td>
+            <td>${cols[4]}</td>
+            <td>${cols[5]}</td>
+            <td>${cols[6]}</td>
+            <td><small>${cols[7]}</small></td>
+          </tr>`;
+        }).join('');
+      }
+      loadMessages();
+      setInterval(loadMessages, 5000);
+      </script>
+  <!-- ================== HẾT PHẦN THÊM MỚI ================== -->
+
         <div id="sessionList" class="row">
           <!-- Danh sách session sẽ load tự động -->
         </div>

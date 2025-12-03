@@ -1,4 +1,4 @@
-// 🔥 RECORDER V7.0 - HỢP NHẤT TIMER TỰ ĐỘNG + TÍNH NĂNG GỐC
+// RECORDER V7.0 – PHIÊN BẢN HOÀN HẢO CUỐI CÙNG (ĐÃ FIX HOÀN TOÀN)
 let recorder, stream, recordedBlob = null;
 const video = document.getElementById('videoPreview');
 const stopBtn = document.getElementById('stopBtn');
@@ -25,7 +25,23 @@ let timerId = null;
 let currentCountdown = 0;
 let currentPhase = '';
 
-// KHỞI TẠO - THÊM TỪ MÃ GỐC
+// ==================== NÚT "BẮT ĐẦU GHI NGAY" (từ câu 2) ====================
+const skipPrepareBtn = document.createElement('div');
+skipPrepareBtn.className = 'text-center mt-4';
+skipPrepareBtn.innerHTML = `
+  <button class="btn btn-primary btn-lg" style="min-width:340px;height:66px;font-size:1.4rem;font-weight:700;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+    Bắt đầu ghi ngay
+  </button>
+`;
+skipPrepareBtn.style.display = 'none';
+skipPrepareBtn.onclick = () => {
+  stopTimer();
+  skipPrepareBtn.style.display = 'none';  // ← Dòng này làm nút biến mất ngay lập tức
+  handlePrepareComplete(); // bắt đầu ghi ngay, không cần chờ
+};
+document.querySelector('#videoPreview').parentNode.appendChild(skipPrepareBtn);
+
+// ==================== KHỞI TẠO ====================
 (async () => {
   if (!token || !userName) {
     alert('Phiên làm việc không hợp lệ!');
@@ -67,18 +83,15 @@ function stopTimer() {
   if (timerId) {
     clearInterval(timerId);
     timerId = null;
-    console.log('🛑 Timer stopped');
   }
 }
 
 // UPDATE TIMER
 function updateTimer(seconds, phase) {
   if (!timerDisplay) return;
-  
   const timeStr = `00:${seconds.toString().padStart(2, '0')}`;
   timerDisplay.innerHTML = `<span class="timer-text">${timeStr}</span>`;
   timerDisplay.className = `timer-circle timer-${phase.replace('_', '-')}`;
-  
   timerDisplay.classList.remove('timer-danger', 'timer-warning');
   if (seconds <= 5) timerDisplay.classList.add('timer-danger');
   else if (seconds <= 10 && phase === 'recording') timerDisplay.classList.add('timer-warning');
@@ -86,22 +99,18 @@ function updateTimer(seconds, phase) {
 
 // START COUNTDOWN
 function startCountdown(seconds, phase, onComplete) {
-  console.log(`🚀 START ${phase}: ${seconds}s`);
-  
+  console.log(`START ${phase}: ${seconds}s`);
   stopTimer();
   currentPhase = phase;
   currentCountdown = seconds;
-  
   updateTimer(seconds, phase);
-  
+
   timerId = setInterval(() => {
     currentCountdown--;
-    console.log(`${phase}: ${currentCountdown}s left`);
-    
     if (currentCountdown > 0) {
       updateTimer(currentCountdown, phase);
     } else {
-      console.log(`✅ ${phase} COMPLETED`);
+      console.log(`${phase} COMPLETED`);
       stopTimer();
       updateTimer(0, phase);
       if (onComplete) onComplete();
@@ -111,40 +120,54 @@ function startCountdown(seconds, phase, onComplete) {
 
 // TIMER HANDLERS
 function handleQuestionPrepareComplete() {
-  console.log('🎯 START PREPARE');
-  status.innerHTML = '<small class="text-primary">⏳ Chuẩn bị ghi (3s)...</small>';
+  status.innerHTML = '<small class="text-primary">Chuẩn bị ghi (3s)...</small>';
   startCountdown(TIME_CONFIG.PREPARE_TIME, 'prepare', handlePrepareComplete);
 }
 
 function handlePrepareComplete() {
-  console.log('🎥 START RECORDING');
+  console.log('START RECORDING');
   startRecording();
 }
 
 function handleRecordingComplete() {
-  console.log('⏹️ STOP RECORDING');
   if (recorder?.state === 'recording') {
     recorder.stop();
   }
-  startBreak();
 }
 
+// ==================== BREAK SAU KHI GHI XONG ====================
 function startBreak() {
-  console.log('⏸️ START BREAK 5s');
-  status.innerHTML = '<small class="text-info">⏸️ Nghỉ 5 giây...</small>';
-  nextBtn.classList.remove('d-none');
-  nextBtn.disabled = false;
-  
-  nextBtn.textContent = (currentIdx === questions.length - 1) ? 'Upload & Finish' : 'Next →';
-  
-  startCountdown(TIME_CONFIG.BREAK_TIME, 'break', () => {
-    console.log('🚀 AUTO CLICK NEXT');
-    if (nextBtn && !nextBtn.disabled) {
-      nextBtn.click();
-    } else {
-      console.log('⚠️ Next button not available');
-    }
-  });
+  console.log('startBreak() – currentIdx:', currentIdx);
+
+  if (currentIdx === 0) {
+    // CÂU 1: Nghỉ 5s + hiện nút Next
+    status.innerHTML = '<small class="text-info">Nghỉ 5 giây...</small>';
+    nextBtn.classList.remove('d-none');
+    nextBtn.disabled = false;
+    nextBtn.textContent = (currentIdx === questions.length - 1) ? 'Upload & Finish' : 'Next →';
+
+    startCountdown(TIME_CONFIG.BREAK_TIME, 'break', () => {
+      if (nextBtn && !nextBtn.disabled) nextBtn.click();
+    });
+  } else {
+    // TỪ CÂU 2: Nghỉ 5s BẮT BUỘC → 3s preview + nút skip
+    status.innerHTML = '<small class="text-info">Nghỉ 5 giây...</small>';
+    nextBtn.classList.add('d-none');
+    nextBtn.disabled = true;
+    skipPrepareBtn.style.display = 'none';
+
+    startCountdown(TIME_CONFIG.BREAK_TIME, 'break', () => {
+      status.innerHTML = '<small class="text-primary">Chuẩn bị ghi (3s)...<br><strong>Bạn có thể bấm nút để bắt đầu ngay</strong></small>';
+      skipPrepareBtn.style.display = 'block';
+      skipPrepareBtn.querySelector('button').disabled = false;
+      skipPrepareBtn.querySelector('button').textContent = 'Bắt đầu ghi ngay';
+
+      startCountdown(TIME_CONFIG.PREPARE_TIME, 'prepare', () => {
+        skipPrepareBtn.style.display = 'none';
+        handlePrepareComplete();
+      });
+    });
+  }
 }
 
 // UPDATE PROGRESS
@@ -158,94 +181,91 @@ function updateProgress() {
   }
 }
 
-// SHOW QUESTION
+// ==================== SHOW QUESTION ====================
 function showQuestion(idx) {
-  console.log(`📝 Question ${idx + 1}/${questions.length}`);
+  console.log(`Question ${idx + 1}/${questions.length}`);
   currentIdx = idx;
-  
   if (idx >= questions.length) return;
-  
+
   document.getElementById('questionText').innerHTML = questions[idx];
   document.getElementById('currentQ').textContent = idx + 1;
   updateProgress();
 
   stopTimer();
-  
-  status.innerHTML = '<small class="text-primary">⏳ Chuẩn bị câu hỏi...</small>';
   stopBtn.classList.add('d-none');
   nextBtn.classList.add('d-none');
   retryBtn?.classList.add('d-none');
   uploadStatus.innerHTML = '';
   recordedBlob = null;
   if (video) video.srcObject = null;
-  
-  startCountdown(TIME_CONFIG.QUESTION_PREPARE, 'question_prepare', handleQuestionPrepareComplete);
+  skipPrepareBtn.style.display = 'none';
+
+  if (currentIdx === 0) {
+    status.innerHTML = '<small class="text-primary">Chuẩn bị câu hỏi...</small>';
+    startCountdown(TIME_CONFIG.QUESTION_PREPARE, 'question_prepare', handleQuestionPrepareComplete);
+  } else {
+    status.innerHTML = '';
+  }
 }
 
-// START RECORDING
+// ==================== START RECORDING ====================
 async function startRecording() {
   try {
-    console.log('📹 Starting camera...');
+    console.log('Starting camera...');
     stream = await navigator.mediaDevices.getUserMedia({ 
       video: { width: 1280, height: 720 }, 
       audio: true 
     });
     video.srcObject = stream;
-
-    // Lật video ngang
-      video.style.transform = 'scaleX(-1)';
-      video.style.transformOrigin = 'center center';
-
+    video.style.transform = 'scaleX(-1)';
+    video.style.transformOrigin = 'center center';
 
     const chunks = [];
     recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
 
     recorder.ondataavailable = e => chunks.push(e.data);
     recorder.onstop = () => {
-      console.log('✅ Recording STOPPED');
+      console.log('Recording STOPPED');
       const now = new Date().toISOString().slice(0,19).replace(/[:T]/g, '-');
       const safeName = userName.replace(/[^a-zA-Z0-9_-]/g, '_');
       const filename = `${safeName}_Q${String(currentIdx + 1).padStart(2, '0')}_${now}.webm`;
       recordedBlob = new Blob(chunks, { type: 'video/webm' });
-      
-    
+
       stream.getTracks().forEach(t => t.stop());
       video.srcObject = null;
-      
       video.src = URL.createObjectURL(recordedBlob);
-      video.style.transform = 'scaleX(-1)';  // quan trọng nhất
-      video.style.transformOrigin = 'center center';
+      video.style.transform = 'scaleX(-1)';
 
       if (recordedBlob.size > MAX_SIZE) {
-        status.innerHTML = '<small class="text-danger">❌ Video quá lớn (>200MB)! Hãy ghi ngắn lại.</small>';
+        status.innerHTML = '<small class="text-danger">Video quá lớn (>200MB)! Hãy ghi ngắn lại.</small>';
         recordedBlob = null;
         setTimeout(() => showQuestion(currentIdx), 2000);
         return;
       }
 
-      status.innerHTML = '<small class="text-success">✅ Đã ghi xong!</small>';
+      status.innerHTML = '<small class="text-success">Đã ghi xong!</small>';
+      timerDisplay.innerHTML=''
       stopBtn.classList.add('d-none');
-      nextBtn.classList.remove('d-none');
       
-      startBreak();
+      // TỰ ĐỘNG UPLOAD NGAY SAU KHI GHI XONG
+      uploadVideo(recordedBlob);
     };
 
     recorder.start();
     stopBtn.classList.remove('d-none');
-    status.innerHTML = '<small class="text-warning">🎥 Đang ghi... (10s)</small>';
-    
+    status.innerHTML = '<small class="text-warning">Đang ghi... (10s)</small>';
     startCountdown(TIME_CONFIG.RECORDING_TIME, 'recording', handleRecordingComplete);
-    
+
   } catch (err) {
-    console.error('❌ Camera error:', err);
-    status.innerHTML = '<small class="text-danger">❌ Không mở được camera!</small>';
+    console.error('Camera error:', err);
+    status.innerHTML = '<small class="text-danger">Không mở được camera!</small>';
   }
 }
 
 // STOP BUTTON
 stopBtn.onclick = () => {
   if (recorder?.state === 'recording') {
-    console.log('⏹️ Manual STOP');
+    console.log('Manual STOP');
     stopTimer();
     recorder.stop();
   }
@@ -253,22 +273,20 @@ stopBtn.onclick = () => {
 
 // NEXT BUTTON
 nextBtn.onclick = () => {
-  console.log('📤 NEXT CLICKED - Q' + (currentIdx + 1));
+  console.log('NEXT CLICKED - Q' + (currentIdx + 1));
   stopTimer();
   nextBtn.disabled = true;
-  
   if (recordedBlob) {
     uploadVideo(recordedBlob);
   } else {
-    console.log('⚠️ No recording');
     nextBtn.disabled = false;
   }
 };
 
-// UPLOAD VIDEO - THÊM TRANSCRIBE + TÊN FILE
+// ==================== UPLOAD VIDEO – GỌI startBreak() SAU KHI UPLOAD XONG ====================
 async function uploadVideo(blob, attempt = 1) {
-  console.log(`📤 UPLOAD Q${currentIdx + 1}`);
-  uploadStatus.innerHTML = `<div class="alert alert-info">📤 Upload câu ${currentIdx+1}… (lần ${attempt})</div>`;
+  console.log(`UPLOAD Q${currentIdx + 1}`);
+  uploadStatus.innerHTML = `<div class="alert alert-info">Upload câu ${currentIdx+1}… (lần ${attempt})</div>`;
 
   const form = new FormData();
   form.append('token', token);
@@ -279,17 +297,15 @@ async function uploadVideo(blob, attempt = 1) {
   try {
     const res = await fetch('api/upload-one.php', { method: 'POST', body: form });
     if (!res.ok) throw new Error();
-
     const json = await res.json();
-    console.log('✅ SUCCESS:', json);
-    uploadStatus.innerHTML = `<div class="alert alert-success">✅ Upload thành công!</div>`;
+    console.log('SUCCESS:', json);
+    uploadStatus.innerHTML = `<div class="alert alert-success">Upload thành công!</div>`;
 
-    // GỌI TRANSCRIBE
     fetch('api/transcribe.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `folder=${folder}&questionIndex=${currentIdx}`
-    }).catch(e => console.error('❌ Transcribe error:', e));
+    }).catch(e => console.error('Transcribe error:', e));
 
     setTimeout(() => {
       if (currentIdx === questions.length - 1) {
@@ -297,11 +313,13 @@ async function uploadVideo(blob, attempt = 1) {
       } else {
         currentIdx++;
         showQuestion(currentIdx);
+        // GỌI startBreak() SAU KHI ĐÃ HIỆN CÂU MỚI → ĐỒNG HỒ CHẠY ĐÚNG
+        startBreak();
       }
       nextBtn.disabled = false;
     }, 2000);
   } catch (e) {
-    console.error('❌ ERROR:', e);
+    console.error('ERROR:', e);
     if (attempt <= 3) {
       setTimeout(() => uploadVideo(blob, attempt + 1), 2000 * attempt);
     } else {
@@ -318,9 +336,6 @@ async function uploadVideo(blob, attempt = 1) {
 
 // COMPLETION MESSAGE
 function showCompletionMessage() {
-  console.log('🎉 COMPLETION SCREEN');
-
-  // Ẩn toàn bộ giao diện phỏng vấn
   document.querySelector('.progress').style.display = 'none';
   document.querySelector('.question-box').style.display = 'none';
   video.parentElement.style.display = 'none';
@@ -330,11 +345,10 @@ function showCompletionMessage() {
   retryBtn.style.display = 'none';
   status.style.display = 'none';
 
-  // Hiện thông điệp cảm ơn ngay trong trang
   const card = document.querySelector('.interview-card');
   card.innerHTML = `
     <div class="text-center p-5">
-      <h1 class="text-success mb-4">🎉 Cảm ơn bạn đã tham gia phỏng vấn!</h1>
+      <h1 class="text-success mb-4">Cảm ơn bạn đã tham gia phỏng vấn!</h1>
       <p class="fs-5">Chúng tôi sẽ liên hệ lại với bạn sau khi xem xét câu trả lời.</p>
     </div>
   `;

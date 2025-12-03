@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prep Interview Recorder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.25/fullpage.min.css" />
+  <style>
+    body, html { margin:0; padding:0; height:100%; overflow:hidden; font-family:'Montserrat', sans-serif; }
+
+    /* Ẩn watermark fullPage.js */
+    #fp-nav, .fp-watermark { display: none !important; }
+
+    /* Trang 1 */
+    .section1 {
+      background: linear-gradient(135deg, #3f5cde 0%, #59476d 100%);
+      color: white;
+    }
+    .btn-start {
+      background: white; color: #3d58cf; padding: 18px 70px; font-size: 1.6rem;
+      font-weight: 700; border-radius: 60px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+      transition: all 0.4s;
+    }
+    .btn-start:hover {
+      transform: translateY(-8px); box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+      background: #f8f9ff;
+    }
+    .scroll-hint {
+      position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+      font-size: 2.5rem; animation: bounce 2s infinite; opacity: 0.7;
+    }
+    @keyframes bounce { 0%,100% { transform: translateY(0) translateX(-50%); } 50% { transform: translateY(-20px) translateX(-50%); } }
+
+    /* Trang 2 */
+    .section2 {
+      background: linear-gradient(135deg, #145e7c, #145366, #464ebe);
+      padding: 0 20px;
+    }
+
+    /* NÚT ADMIN GÓC TRÊN BÊN PHẢI */
+    .admin-login-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 50px;
+      box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+      cursor: pointer;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+    .admin-login-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(255, 107, 107, 0.6);
+      background: linear-gradient(135deg, #ff5252, #d32f2f);
+    }
+    .admin-login-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+    @media (max-width: 768px) {
+      .admin-login-btn {
+        top: 15px;
+        right: 15px;
+        padding: 10px 15px;
+        font-size: 0.9rem;
+      }
+      .admin-login-btn span { display, display: none; }
+    }
+
+    /* NÚT HỖ TRỢ GÓC DƯỚI PHẢI */
+    .support-box { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+    .support-toggle { width: 60px; height: 60px; background: #3f5cde; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s; }
+    .support-toggle:hover { transform: scale(1.1); }
+    .support-toggle img { width: 32px; filter: brightness(0) invert(1); }
+    .support-content { position: absolute; bottom: 75px; right: 0; width: 300px; background: white; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.25); overflow: hidden; transform: scale(0); transform-origin: bottom right; transition: all 0.3s ease; }
+    .support-content.show { transform: scale(1); }
+    .support-header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 14px 16px; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .support-close { cursor: pointer; font-size: 1.5rem; font-weight: bold; }
+    .support-body { max-height: 400px; overflow-y: auto; }
+    .support-item { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid #eee; transition: background 0.2s; }
+    .support-item:hover { background: #f8f9ff; }
+    .support-item img { width: 40px; height: 40px; margin-right: 12px; border-radius: 50%; }
+    .support-item .name { font-weight: 600; font-size: 0.95rem; }
+    .support-item .role { font-size: 0.8rem; color: #888; }
+  </style>
+</head>
+<body>
+
+  <!-- NÚT ADMIN GÓC TRÊN PHẢI -->
+<!-- NÚT ADMIN GÓC TRÊN PHẢI -->
+<div id="adminLoginBtn" class="admin-login-btn" title="Đăng nhập Admin">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+  <span>Admin</span>
+</div>
+  <div id="fullpage">
+
+    <!-- TRANG 1 – DÙNG ẢNH icon.png CỦA BẠN -->
+    <div class="section section1">
+      <div class="container position-relative">
+        <div class="row align-items-center min-vh-100">
+
+          <!-- Chữ bên trái -->
+          <div class="col-lg-6 text-white text-lg-start text-center">
+            <h1 class="display-1 fw-bold mb-4" style="line-height: 1.1;">
+              Nền tảng<br>
+              <span style="background: linear-gradient(120deg, #ffd700, #ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Phỏng vấn
+              </span><br>
+              trực tuyến
+            </h1>
+            <p class="lead fs-3 opacity-90 mb-5">Hệ thống phỏng vấn video</p>
+            <button id="startBtn" class="btn btn-start shadow-lg px-5 py-4 fs-4">Bắt đầu ngay</button>
+          </div>
+
+          <!-- Robot icon.png của bạn bên phải -->
+          <div class="col-lg-6 text-center">
+            <img src="icon.png" alt="Team Robot" class="img-fluid" style="max-width: 125%; transform: translateX(-18%) translateY(30px);">
+          </div>
+
+        </div>
+        <div class="scroll-hint">Scroll</div>
+      </div>
+    </div>
+
+    <!-- TRANG 2 -->
+    <div class="section section2">
+      <div class="container h-100">
+        <div class="row align-items-center h-100">
+          <div class="col-lg-6">
+            <h2 class="display-4 fw-bold mb-4">Bạn còn câu hỏi khác?</h2>
+            <p class="lead opacity-90">Hãy để lại thông tin, chúng tôi sẽ liên hệ và hỗ trợ tư vấn chi tiết cho bạn!</p>
+          </div>
+          <div class="col-lg-6 text-center">
+            <img src="icon1.png" alt="Chat với AI" class="img-fluid" style="max-width: 85%;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NÚT HỖ TRỢ ADMIN -->
+  <div id="supportBox" class="support-box">
+    <div class="support-toggle" id="supportToggle">
+      <img src="https://img.icons8.com/fluency/48/chat-message.png" alt="Hỗ trợ">
+    </div>
+    <div class="support-content" id="supportContent">
+      <div class="support-header">
+        <strong>Admin hỗ trợ</strong>
+        <span class="support-close" id="supportClose">×</span>
+      </div>
+      <div class="support-body">
+        <div class="support-item">
+          <img src="https://img.icons8.com/fluency/48/user-male-circle.png" alt="NTHY">
+          <div><div class="name">Nguyễn Thị Hải Yến</div><div class="role">11247252</div></div>
+        </div>
+        <div class="support-item">
+          <img src="https://img.icons8.com/fluency/48/user-male-circle.png" alt="NHNM">
+          <div><div class="name">Nguyễn Hồ Ngọc Minh</div><div class="role">11247201</div></div>
+        </div>
+        <div class="support-item">
+          <img src="https://img.icons8.com/fluency/48/user-male-circle.png" alt="NVD">
+          <div><div class="name">Nguyễn Văn Đức</div><div class="role">11247153</div></div>
+        </div>
+        <div class="support-item">
+          <img src="https://img.icons8.com/fluency/48/user-male-circle.png" alt="NVNK">
+          <div><div class="name">Nguyễn Văn Nam Khánh</div><div class="role">11247180</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.25/fullpage.min.js"></script>
+  <script>
+  new fullpage('#fullpage', {
+    autoScrolling: true,
+    navigation: true,
+    scrollingSpeed: 1000,
+    easing: 'easeInOutCubic'
+  });
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    window.location.href = 'token.html';
+  });
+
+  // NÚT ADMIN → CHUYỂN ĐẾN TRANG TOKEN (đã fix 100%)
+  document.getElementById('adminLoginBtn')?.addEventListener('click', () => {
+    window.location.href = 'token.html';
+  });
+</script>
+
+    // Hỗ trợ box
+    const toggle = document.getElementById('supportToggle');
+    const content = document.getElementById('supportContent');
+    const close = document.getElementById('supportClose');
+    toggle.onclick = () => content.classList.toggle('show');
+    close.onclick = () => content.classList.remove('show');
+    document.addEventListener('click', (e) => {
+      if (!toggle.contains(e.target) && !content.contains(e.target)) {
+        content.classList.remove('show');
+      }
+    });
+  </script>
+</body>
+</html>

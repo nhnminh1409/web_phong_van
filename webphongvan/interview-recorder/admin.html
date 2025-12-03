@@ -12,9 +12,24 @@
     .session-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
     .table th { font-size: 0.9rem; }
     .table td small { line-height: 1.4; }
+
+    /* NÚT QUAY LẠI TRANG CHỦ – ĐẸP + RÕ RÀNG */
+    .back-home-fixed {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
+  <!-- NÚT QUAY LẠI TRANG CHỦ CHO ADMIN -->
+  <div class="back-home-fixed">
+    <button onclick="backToHome()" class="btn btn-danger btn-lg rounded-pill shadow-lg">
+      ← Trang chủ
+    </button>
+  </div>
+
   <div class="container">
     <div class="card">
       <div class="card-header bg-primary text-white text-center">
@@ -49,50 +64,6 @@
             </div>
           </div>
         </div>
-
-        <script>
-        async function loadMessages() {
-          try {
-            const res = await fetch('contact-messages.txt?t=' + Date.now());
-            const text = await res.text();
-            const lines = text.trim().split('\n').filter(line => line.includes('|') && line.trim() !== '');
-
-            const tbody = document.getElementById('messagesTable');
-
-            if (lines.length <= 1) {
-              tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">Chưa có tin nhắn nào</td></tr>';
-              return;
-            }
-
-            // Bỏ header, đảo ngược để mới nhất lên trên
-            const dataLines = lines.slice(1).reverse();
-
-            tbody.innerHTML = dataLines.map(line => {
-              const cols = line.split(' | ').map(c => c.trim());
-
-              // Bảo vệ nếu dữ liệu bị lỗi
-              if (cols.length < 7) return '';
-
-              return `<tr>
-                <td><small class="text-muted">${cols[0]}</small></td>
-                <td><strong>${cols[1]}</strong></td>
-                <td>${cols[2]}</td>
-                <td>${cols[3]}</td>
-                <td><small>${cols[4] || '-'}</small></td>
-                <td>${cols[5] || 'Không chọn'}</td>
-                <td><small style="word-break:break-word;">${cols[6].replace(/\\n/g, '<br>')}</small></td>
-              </tr>`;
-            }).join('');
-          } catch (err) {
-            document.getElementById('messagesTable').innerHTML = 
-              '<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
-          }
-        }
-
-        // Load lần đầu + tự động cập nhật mỗi 5 giây
-        loadMessages();
-        setInterval(loadMessages, 5000);
-        </script>
         <!-- HẾT PHẦN TIN NHẮN -->
 
         <div id="sessionList" class="row">
@@ -117,10 +88,52 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Bảo vệ trang admin
+    // BẢO VỆ TRANG ADMIN
     if (sessionStorage.getItem('isAdmin') !== 'true') {
       alert('Bạn không có quyền truy cập trang này!');
       window.location.href = 'index.html';
+    }
+
+    // HÀM QUAY LẠI TRANG CHỦ TỪ ADMIN
+    function backToHome() {
+      sessionStorage.clear();  // xóa hết dữ liệu phiên admin
+      window.location.href = 'index.html';
+    }
+
+    // Load danh sách tin nhắn từ contact-messages.txt
+    async function loadMessages() {
+      try {
+        const res = await fetch('contact-messages.txt?t=' + Date.now());
+        const text = await res.text();
+        const lines = text.trim().split('\n').filter(line => line.includes('|') && line.trim() !== '');
+
+        const tbody = document.getElementById('messagesTable');
+
+        if (lines.length <= 1) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">Chưa có tin nhắn nào</td></tr>';
+          return;
+        }
+
+        const dataLines = lines.slice(1).reverse();
+
+        tbody.innerHTML = dataLines.map(line => {
+          const cols = line.split(' | ').map(c => c.trim());
+          if (cols.length < 7) return '';
+
+          return `<tr>
+            <td><small class="text-muted">${cols[0]}</small></td>
+            <td><strong>${cols[1]}</strong></td>
+            <td>${cols[2]}</td>
+            <td>${cols[3]}</td>
+            <td><small>${cols[4] || '-'}</small></td>
+            <td>${cols[5] || 'Không chọn'}</td>
+            <td><small style="word-break:break-word;">${cols[6].replace(/\\n/g, '<br>')}</small></td>
+          </tr>`;
+        }).join('');
+      } catch (err) {
+        document.getElementById('messagesTable').innerHTML = 
+          '<tr><td colspan="7" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+      }
     }
 
     // Load danh sách buổi phỏng vấn
@@ -181,7 +194,10 @@
       new bootstrap.Modal(document.getElementById('detailModal')).show();
     }
 
+    // Load lần đầu + tự động cập nhật tin nhắn mỗi 5 giây
     loadSessions();
+    loadMessages();
+    setInterval(loadMessages, 5000);
   </script>
 </body>
 </html>
